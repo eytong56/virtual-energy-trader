@@ -9,7 +9,7 @@ async function getBids(date) {
     );
   }
   const result = await pool.query(
-    "SELECT * FROM bids ORDER BY market_date ASC, hour_slot ASC"
+    "SELECT * FROM bids ORDER BY market_date DESC, hour_slot ASC"
   );
   return result.rows;
 }

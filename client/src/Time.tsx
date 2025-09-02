@@ -3,11 +3,21 @@ import { useState, useEffect } from "react";
 
 function Time() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [lastUpdatedTime, setLastUpdatedTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLastUpdatedTime(new Date());
+    }, 5 * 6000);
     return () => {
       clearInterval(timer);
     };
@@ -27,7 +37,7 @@ function Time() {
       />
       <Statistic
         title="Last Updated"
-        value={currentTime.toLocaleTimeString("en-US", {
+        value={lastUpdatedTime.toLocaleTimeString("en-US", {
           hour: "numeric",
           minute: "2-digit",
           second: "2-digit",

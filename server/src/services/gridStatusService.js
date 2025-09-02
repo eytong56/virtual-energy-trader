@@ -78,8 +78,47 @@ async function getDayAheadPrices(marketDate) {
   }
 }
 
+async function getRtPrices(marketDate, hourSlot) {
+  try {
+    console.log(marketDate, hourSlot)
+    const dataset = "caiso_lmp_real_time_5_min";
+    // Parse the date components manually to avoid timezone issues
+    const startTime = new Date(marketDate);
+    startTime.setHours(hourSlot, 0, 0, 0);
+    const endTime = new Date(marketDate);
+    endTime.setHours(hourSlot + 1, 0, 0, 0);
+    const response = await fetch(
+      `${baseURL}/${dataset}/query/location/${hubNode}?start_time=${startTime.toISOString()}&end_time=${endTime.toISOString()}&timezone=market&api_key=${API_KEY}`
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error, status: ${response.status}`);
+    }
+    const data = await response.json();
+    // console.log(data.data);
+    if (data.data.length === 0) {
+      console.log(
+        `No rtPrice data received from GridStatus for ${marketDate}, ${hourSlot}`
+      );
+      return data.data;
+    }
+    const rtData = data.data.map((entry) => {
+      return {
+        time: new Date(entry.interval_start_local),
+        price: entry.lmp,
+      };
+    });
+    return rtData;
+  } catch (error) {
+    console.log(
+      `Error fetching rt prices from GridStatus: ${error.message}`
+    );
+    throw error;
+  }
+}
+
 export default {
   testConnection,
   getCurrentPrice,
   getDayAheadPrices,
+  getRtPrices
 };

@@ -71,7 +71,6 @@ const SETTLEMENTS_INIT_SQL = `
     settlement_time TIMESTAMP NOT NULL,           -- Exact 5-minute settlement time
     rt_price DECIMAL(10,2) NOT NULL,             -- Real-time price at settlement
     pnl_amount DECIMAL(12,2) NOT NULL,           -- P&L for this 5-minute period
-    cumulative_pnl DECIMAL(12,2) NOT NULL,      -- Running total P&L for this contract
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     -- Ensure one settlement per contract per 5-minute interval

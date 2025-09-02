@@ -2,7 +2,7 @@ import cron from "node-cron";
 import clearingPriceService from "../services/clearingPriceService.js";
 
 async function start() {
-  cron.schedule("0 2 * * *", async () => {
+  cron.schedule("0 14 * * *", async () => {
     try {
       // Fetch today's prices
       const today = new Date().toISOString().split("T")[0];

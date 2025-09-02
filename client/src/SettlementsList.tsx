@@ -39,8 +39,8 @@ function ContractList() {
       dataIndex: "pnl_amount",
     },
     {
-      title: "Cumulative P/L ($)",
-      dataIndex: "cumulative_pnl",
+      title: "Real-time price ($)",
+      dataIndex: "rt_price",
     },
   ];
 

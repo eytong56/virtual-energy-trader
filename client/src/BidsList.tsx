@@ -6,7 +6,7 @@ function ContractList() {
   const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
 
-  // Fetch contracts
+  // Fetch bids
   useEffect(() => {
     const fetchBids = async () => {
       try {

@@ -67,7 +67,7 @@ app.get("/api/health", async (req, res) => {
 });
 
 // Manual clearing price trigger (for testing)
-app.post("/api/admin/run-settlement", async (req, res) => {
+app.post("/api/admin/run-price-clearing", async (req, res) => {
   try {
     const result = await clearingPriceJob.runOnce();
     res.json(result);

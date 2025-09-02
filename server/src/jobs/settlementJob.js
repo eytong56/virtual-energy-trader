@@ -1,5 +1,7 @@
 import cron from "node-cron";
 import Contract from "../models/Contract.js";
+import gridStatusService from "../services/gridStatusService.js";
+import Settlement from "../models/Settlement.js";
 
 // Calculate P&L for a contract given real-time price
 function calculatePnL(contract, rtPrice, timeIntervalMinutes = 5) {
@@ -17,57 +19,6 @@ function calculatePnL(contract, rtPrice, timeIntervalMinutes = 5) {
 
   // P&L for this time interval (5 minutes = 1/12 of an hour)
   return pnlPerMWh * quantity * (timeIntervalMinutes / 60);
-}
-
-// Round timestamp to nearest 5-minute interval
-function roundToFiveMinutes(timestamp) {
-  const rounded = new Date(timestamp);
-  rounded.setMinutes(Math.floor(rounded.getMinutes() / 5) * 5, 0, 0);
-  return rounded;
-}
-
-// Get the latest cumulative P&L for a contract
-async function getLastCumulativePnL(contractId, client) {
-  try {
-    const result = await client.query(
-      `
-        SELECT cumulative_pnl 
-        FROM settlements 
-        WHERE contract_id = $1 
-        ORDER BY settlement_time DESC 
-        LIMIT 1
-      `,
-      [contractId]
-    );
-
-    return result.rows.length > 0
-      ? parseFloat(result.rows[0].cumulative_pnl)
-      : 0;
-  } catch (error) {
-    console.error(
-      `Error getting last cumulative P&L for contract ${contractId}:`,
-      error
-    );
-    return 0;
-  }
-}
-
-// Check if settlement already exists for this contract and time
-async function settlementExists(contractId, settlementTime, client) {
-  try {
-    const result = await client.query(
-      `
-        SELECT id FROM settlements 
-        WHERE contract_id = $1 AND settlement_time = $2
-      `,
-      [contractId, settlementTime]
-    );
-
-    return result.rows.length > 0;
-  } catch (error) {
-    console.error("Error checking settlement existence:", error);
-    return false;
-  }
 }
 
 let isRunning = false;
@@ -95,40 +46,56 @@ async function settleContracts() {
     console.log(`Settling ${activeContracts.length} active contracts`);
 
     for (const contract of activeContracts) {
+      stats.processed++;
+
       const { id, market_date, hour_slot } = contract;
 
-      // Get real-time price from database
-      const rtPrice = await rtPriceService.getRtPrice(market_date, hour_slot);
-      if (clearingPrice === null) {
-        console.log(
-          `Clearing price not available for ${market_date} hour ${hour_slot}`
-        );
+      // Check if contract already fully settled
+      if (await Settlement.checkFullySettled(id)) {
+        await Contract.updateContractStatus(id, "settled");
+        console.log(`Contract ${contract.id} fully settled`);
+        stats.settled++;
         continue;
       }
 
-      if (isClear(bid, clearingPrice)) {
-        // Fill the bid
-        await Bid.updateBidStatus(id, "filled");
-        // Create contract with clearing price
-        await Contract.createContract(bid, clearingPrice);
-        console.log(
-          `Bid ${id} filled (clearing: $${clearingPrice}, bid: $${bid.price})`
+      // Get real-time price from GridStatus.io
+      const rtData = await gridStatusService.getRtPrices(
+        market_date,
+        hour_slot
+      );
+
+      for (const rtPrice of rtData) {
+        // Check if already settled for this contract and settlement time
+        if (await Settlement.checkSettlementExists(id, rtPrice.time)) {
+          console.log(
+            `Settlement for contract ${id} for ${rtPrice.time} already exists`
+          );
+          continue;
+        }
+        const pnl = calculatePnL(contract, rtPrice.price);
+        // Create settlement for this settlement time
+        const result = await Settlement.createSettlement(
+          contract,
+          rtPrice.time,
+          rtPrice.price,
+          pnl
         );
-        stats.filled++;
-      } else {
-        // Reject the bid
-        await Bid.updateBidStatus(id, "rejected");
-        console.log(
-          `Bid ${id} rejected (clearing: $${clearingPrice}, bid: $${bid.price})`
-        );
-        stats.rejected++;
+        console.log(result);
       }
-      stats.processed++;
+      
+      // Check now if contract is fully settled
+      if (await Settlement.checkFullySettled(id)) {
+        await Contract.updateContractStatus(contract.id, "settled");
+        console.log(`Contract ${contract.id} fully settled`);
+        stats.settled++;
+      }
+      // Add delay to avoid rate limiting
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
-    console.log("Bid processing completed:", stats);
+    console.log("Settlement processing completed:", stats);
     return stats;
   } catch (error) {
-    console.error("Error processing pending bids: ", error);
+    console.error("Error settling active contracts: ", error);
     throw error;
   } finally {
     isRunning = false;
