@@ -33,7 +33,7 @@ async function createContract(bidData, clearingPrice) {
     const positionType = bidData.bid_type === "buy" ? "long" : "short";
     const { market_date, hour_slot, quantity } = bidData;
     const result = await pool.query(
-      "INSERT INTO contracts (user_id, market_date, hour_slot, position_type, quantity, clearing_price",
+      "INSERT INTO contracts (user_id, market_date, hour_slot, position_type, quantity, clearing_price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
       [userId, market_date, hour_slot, positionType, quantity, clearingPrice]
     );
     return result.rows[0];
@@ -51,7 +51,7 @@ async function updateContractStatus(contractId, status) {
       [status, contractId]
     );
     if (result.rows.length === 0) {
-      throw new Error(`Contract with id ${contractId} not found`)
+      throw new Error(`Contract with id ${contractId} not found`);
     }
     return result.rows[0];
   } catch (error) {
@@ -60,11 +60,9 @@ async function updateContractStatus(contractId, status) {
   }
 }
 
-
-
 export default {
   getContracts,
   getActiveContracts,
   createContract,
-  updateContractStatus
+  updateContractStatus,
 };

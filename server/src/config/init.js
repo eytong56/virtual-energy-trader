@@ -3,11 +3,15 @@ import { Client } from "pg";
 
 const ENUMS_INIT_SQL = `
   -- Create custom ENUM types first
-  CREATE TYPE bid_type AS ENUM ('buy', 'sell');
-  CREATE TYPE bid_status AS ENUM ('pending', 'filled', 'rejected');
-  CREATE TYPE position_type AS ENUM ('long', 'short');
-  CREATE TYPE contract_status AS ENUM ('active', 'settled');
-`
+  DO $$ BEGIN
+    CREATE TYPE bid_type AS ENUM ('buy', 'sell');
+    CREATE TYPE bid_status AS ENUM ('pending', 'filled', 'rejected');
+    CREATE TYPE position_type AS ENUM ('long', 'short');
+    CREATE TYPE contract_status AS ENUM ('active', 'settled');
+  EXCEPTION
+    WHEN duplicate_object THEN null;
+  END $$;
+`;
 
 const USERS_INIT_SQL = `
   -- Users table (Trader accounts)
@@ -39,7 +43,7 @@ const BIDS_INIT_SQL = `
     -- Ensure one bid per user per hour slot per day
     UNIQUE(user_id, market_date, hour_slot)
   );
-`
+`;
 
 const CONTRACTS_INIT_SQL = `
   -- Contracts table (Contracts from cleared bids, created once daily)
@@ -57,7 +61,7 @@ const CONTRACTS_INIT_SQL = `
     -- Ensure unique contracts per user per hour
     UNIQUE(user_id, market_date, hour_slot)
   );
-`
+`;
 
 const SETTLEMENTS_INIT_SQL = `
   -- Settlements table (Real-time settlement records, every 5 minutes)
@@ -73,18 +77,36 @@ const SETTLEMENTS_INIT_SQL = `
     -- Ensure one settlement per contract per 5-minute interval
     UNIQUE(contract_id, settlement_time)
   );
-`
+`;
 
-const client = new Client({
-  connectionString: process.env.DATABASE_URL,
-});
+const CLEARING_PRICES_INIT_SQL = `
+  CREATE TABLE IF NOT EXISTS clearing_prices (
+    id SERIAL PRIMARY KEY,
+    market_date DATE NOT NULL,
+    hour_slot INTEGER NOT NULL CHECK (hour_slot >= 0 AND hour_slot <= 23),
+    clearing_price DECIMAL(10,2) NOT NULL CHECK (clearing_price > 0),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-await client.connect();
-// await client.query(ENUMS_INIT_SQL);
-await client.query(USERS_INIT_SQL);
-await client.query(BIDS_INIT_SQL);
-await client.query(CONTRACTS_INIT_SQL);
-await client.query(SETTLEMENTS_INIT_SQL);
-await client.end();
+    -- Ensure one clearing price per hour slot per day
+    UNIQUE(market_date, hour_slot)
+  );
+`;
 
-console.log("Success: database initialized");
+async function initializeDatabase() {
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+  });
+
+  await client.connect();
+  await client.query(ENUMS_INIT_SQL);
+  await client.query(USERS_INIT_SQL);
+  await client.query(BIDS_INIT_SQL);
+  await client.query(CONTRACTS_INIT_SQL);
+  await client.query(SETTLEMENTS_INIT_SQL);
+  await client.query(CLEARING_PRICES_INIT_SQL);
+  await client.end();
+
+  console.log("Success: database initialized");
+}
+
+export default initializeDatabase;

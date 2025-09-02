@@ -1,4 +1,4 @@
-import gridStatusService from "../services/gridStatusService.js";
+import cron from "node-cron";
 
 // Calculate P&L for a contract given real-time price
 function calculatePnL(contract, rtPrice) {
@@ -16,5 +16,31 @@ function calculatePnL(contract, rtPrice) {
 
   return pnlPerMWh * quantity;
 }
+
+async function settleContracts() {
+  
+}
+
+function start() {
+  cron.schedule("*/59 * * * * *", async () => {
+    try {
+      await settleContracts();
+    } catch (error) {
+      console.error("Settlement job failed: ", error);
+    }
+  });
+  console.log("Settlement job scheduled to run every 5 minutes");
+}
+
+async function runOnce() {
+  try {
+    const stats = await settleContracts();
+    return { success: true, stats };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export default { start, runOnce };
 
 

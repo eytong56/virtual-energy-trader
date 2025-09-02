@@ -2,9 +2,14 @@ import "dotenv/config";
 import pool from "../config/database.js";
 
 async function getBids(date) {
+  if (date !== null) {
+    const result = await pool.query(
+      "SELECT * FROM bids WHERE market_date = $1 ORDER BY hour_slot ASC",
+      [date]
+    );
+  }
   const result = await pool.query(
-    "SELECT * FROM bids WHERE market_date = $1 ORDER BY hour_slot ASC",
-    [date]
+    "SELECT * FROM bids ORDER BY market_date ASC, hour_slot ASC"
   );
   return result.rows;
 }
@@ -47,7 +52,7 @@ async function updateBidStatus(bidId, status) {
       [status, bidId]
     );
     if (result.rows.length === 0) {
-      throw new Error(`Bid with id ${bidId} not found`)
+      throw new Error(`Bid with id ${bidId} not found`);
     }
     return result.rows[0];
   } catch (error) {
