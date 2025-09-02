@@ -4,8 +4,7 @@ import pool from "../config/database.js";
 // Get all contracts (API endpoint)
 async function getContracts(date, status) {
   const result = await pool.query(
-    "SELECT * FROM contracts WHERE market_date = $1 AND status = $2 ORDER BY hour_slot ASC",
-    [date, status]
+    "SELECT * FROM contracts ORDER BY market_date ASC, hour_slot ASC"
   );
   return result.rows;
 }

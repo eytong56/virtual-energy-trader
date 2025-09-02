@@ -3,8 +3,6 @@ import clearingPriceService from "../services/clearingPriceService.js";
 import Bid from "../models/Bid.js";
 import Contract from "../models/Contract.js";
 
-let isRunning = false;
-
 function isClear(bid, clearingPrice) {
   if (bid.bid_type == "buy") {
     // Buy bid clears if bid price >= clearingPrice
@@ -15,9 +13,10 @@ function isClear(bid, clearingPrice) {
   }
 }
 
+let isRunning = false;
 async function processBids() {
   if (isRunning) {
-    console.log("Bid clearing already in progress, skipping...");
+    console.log("Bid processing job already in progress, skipping...");
     return;
   }
   isRunning = true;
@@ -83,8 +82,8 @@ async function processBids() {
 }
 
 function start() {
-  // cron.schedule("*/15 * * * *", async () => {
-  cron.schedule("*/10 * * * * *", async () => {
+  cron.schedule("*/15 * * * *", async () => {
+  // cron.schedule("*/10 * * * * *", async () => {
     try {
       await processBids();
     } catch (error) {

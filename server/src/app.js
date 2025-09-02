@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import cors from "cors";
 import pool from "./config/database.js";
 import initializeDatabase from "./config/init.js";
 
@@ -21,6 +22,12 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173", // Frontend URL
+  })
+);
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -135,7 +142,7 @@ async function startServer() {
       console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
       console.log("Settlement job: Every 5 minutes");
       console.log("Bid clearing job: Every 15 minutes");
-      console.log("Clearing price job: Daily at 9 AM");
+      console.log("Clearing price job: Daily at 2 PM PST");
     });
   } catch (error) {
     console.error("Failed to start server:", error);
