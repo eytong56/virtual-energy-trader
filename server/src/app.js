@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import bidsRouter from "./routes/bids.js";
+import pricesRouter from "./routes/prices.js";
+
 
 const app = express();
 
@@ -13,7 +15,7 @@ app.get("/", (req, res) => res.send("Hello world!"));
 app.use("/api/bids", bidsRouter);
 // app.use("/api/contracts", contractsRouter);
 // app.use("/api/settlements", settlementsRouter);
-// app.use("/api/prices", pricesRouter);
+app.use("/api/prices", pricesRouter);
 
 const PORT = process.env.PORT || 3000;
 
