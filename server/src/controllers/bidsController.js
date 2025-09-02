@@ -26,8 +26,22 @@ async function createBid(req, res) {
   }
 }
 
-async function updateBid(req, res) {
-  res.send("Not yet implemented");
+async function updateBidStatusAPI(req, res) {
+  try {
+    const { bidId } = req.params;
+    const { status } = req.body;
+    if (!["pending", "filled", "rejected"].includes(status)) {
+      return res
+        .status(400)
+        .json({
+          error: "Invalid bid status, must be pending, filled, or rejected",
+        });
+    }
+    const updatedBid = await Bid.updateBidStatus(bidId, status);
+    res.json(updatedBid);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }
 
 async function deleteBid(req, res) {
@@ -37,6 +51,6 @@ async function deleteBid(req, res) {
 export default {
   getBids,
   createBid,
-  updateBid,
+  updateBidStatusAPI,
   deleteBid,
 };

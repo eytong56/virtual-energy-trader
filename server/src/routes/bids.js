@@ -5,7 +5,7 @@ const router = Router();
 
 router.get("/", bidsController.getBids);
 router.post("/", bidsController.createBid);
-router.put("/:id", bidsController.updateBid);
-router.delete("/:id", bidsController.deleteBid);
+router.put("/:bidId", bidsController.updateBidStatusAPI); // For testing
+router.delete("/:bidId", bidsController.deleteBid);
 
 export default router;
