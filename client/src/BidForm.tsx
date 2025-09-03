@@ -10,15 +10,21 @@ import { useState, useEffect } from "react";
 const FormItem = Form.Item;
 
 function BidForm() {
-  const [bidDate, setBidDate] = useState(null);
-  const [bidHour, setBidHour] = useState(null);
-  const [bidType, setBidType] = useState(null);
-  const [bidPrice, setBidPrice] = useState(null);
-  const [bidQuantity, setBidQuantity] = useState(null);
+  const [bidDate, setBidDate] = useState("");
+  const [bidHour, setBidHour] = useState("");
+  const [bidType, setBidType] = useState("");
+  const [bidPrice, setBidPrice] = useState(0);
+  const [bidQuantity, setBidQuantity] = useState(0);
 
   const handleSubmit = async () => {
     try {
-      if (bidDate === null || bidHour === null || bidType === null || bidPrice === null || bidQuantity === null) {
+      if (
+        bidDate === null ||
+        bidHour === null ||
+        bidType === null ||
+        bidPrice === null ||
+        bidQuantity === null
+      ) {
         console.log("Empty input");
         return;
       }
@@ -45,11 +51,11 @@ function BidForm() {
       console.log(newBid);
 
       // Reset inputs
-      setBidDate(null);
-      setBidHour(null);
-      setBidType(null);
-      setBidPrice(null);
-      setBidQuantity(null);
+      setBidDate("");
+      setBidHour("");
+      setBidType("");
+      setBidPrice(0);
+      setBidQuantity(0);
       // onBidAdded(); // Refresh bids
     } catch (error) {
       console.log(`Error creating new bid: ${error}`);

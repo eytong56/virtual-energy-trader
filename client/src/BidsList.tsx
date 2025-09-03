@@ -39,6 +39,10 @@ function ContractList() {
       dataIndex: "hour_slot",
     },
     {
+      title: "Type",
+      dataIndex: "type",
+    },
+    {
       title: "Price $/MWh",
       dataIndex: "price",
     },
@@ -65,6 +69,7 @@ function ContractList() {
       key: bid.id,
       market_date: bid.market_date.split("T")[0],
       hour_slot: bid.hour_slot,
+      type: bid.bid_type,
       price: bid.price,
       quantity: bid.quantity,
       status: bid.status,
