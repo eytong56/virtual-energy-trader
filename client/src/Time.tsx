@@ -18,23 +18,35 @@ function Time() {
   async function handleClick() {
     try {
       setLoading(true);
-      let response = await fetch("http://localhost:3000/api/admin/run-price-clearing", {
-        method: "POST",
-      });
+      let response = await fetch(
+        "http://localhost:3000/api/admin/run-price-clearing",
+        {
+          method: "POST",
+        }
+      );
       if (!response.ok) {
-        throw new Error(`Failed to fetch clearing prices! Status: ${response.status}`);
+        throw new Error(
+          `Failed to fetch clearing prices! Status: ${response.status}`
+        );
       }
-      response = await fetch("http://localhost:3000/api/admin/run-bid-processing", {
-        method: "POST",
-      });
+      response = await fetch(
+        "http://localhost:3000/api/admin/run-bid-processing",
+        {
+          method: "POST",
+        }
+      );
       if (!response.ok) {
-        throw new Error(`Failed to process pending bids! Status: ${response.status}`);
+        throw new Error(
+          `Failed to process pending bids! Status: ${response.status}`
+        );
       }
       response = await fetch("http://localhost:3000/api/admin/run-settlement", {
         method: "POST",
       });
       if (!response.ok) {
-        throw new Error(`Failed to settle active contracts! Status: ${response.status}`);
+        throw new Error(
+          `Failed to settle active contracts! Status: ${response.status}`
+        );
       }
     } catch (error) {
       // setError(error.message);
@@ -66,8 +78,8 @@ function Time() {
         })}
         style={{ marginRight: 60, marginBottom: 20 }}
       />
-      <Button onClick={handleClick} disabled={loading}>
-        {loading ? "Updating..." : "Update Now"}
+      <Button onClick={handleClick} loading={loading}>
+        Update Now
       </Button>
     </Card>
   );

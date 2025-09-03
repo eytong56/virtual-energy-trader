@@ -6,34 +6,34 @@ import {
   InputNumber,
   Radio,
 } from "@arco-design/web-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 const FormItem = Form.Item;
 
 function BidForm() {
-  const [bidDate, setBidDate] = useState("");
-  const [bidHour, setBidHour] = useState("");
-  const [bidType, setBidType] = useState("");
-  const [bidPrice, setBidPrice] = useState(0);
-  const [bidQuantity, setBidQuantity] = useState(0);
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
+      const values = await form.validate();
+      console.log("Form values:", values);
       if (
-        bidDate === null ||
-        bidHour === null ||
-        bidType === null ||
-        bidPrice === null ||
-        bidQuantity === null
+        !values.date ||
+        !values.hourSlot ||
+        !values.bidType ||
+        !values.price ||
+        !values.quantity
       ) {
         console.log("Empty input");
         return;
       }
       const body = {
-        market_date: bidDate,
-        hour_slot: bidHour,
-        bid_type: bidType,
-        price: bidPrice,
-        quantity: bidQuantity,
+        market_date: values.date,
+        hour_slot: values.hourSlot,
+        bid_type: values.bidType,
+        price: values.price,
+        quantity: values.quantity,
       };
       console.log(body);
       const response = await fetch("http://localhost:3000/api/bids", {
@@ -43,7 +43,7 @@ function BidForm() {
         },
         body: JSON.stringify(body),
       });
-      if (!response) {
+      if (!response.ok) {
         throw new Error("Failed to create new bid");
       }
 
@@ -51,29 +51,19 @@ function BidForm() {
       console.log(newBid);
 
       // Reset inputs
-      setBidDate("");
-      setBidHour("");
-      setBidType("");
-      setBidPrice(0);
-      setBidQuantity(0);
+      form.resetFields();
       // onBidAdded(); // Refresh bids
     } catch (error) {
       console.log(`Error creating new bid: ${error}`);
       // setError(error);
     } finally {
-      // setSubmitting(false);
+      setLoading(false);
     }
-  };
-
-  const handleDateChange = (dateString, date) => {
-    setBidDate(dateString); // date is a Dayjs object
-    console.log("Selected date:", dateString); // formatted string
-    console.log("Date object:", date); // Dayjs object
   };
 
   return (
     <Card style={{ width: 480 }} title="Bid Submission Form" bordered={false}>
-      <Form layout="horizontal" autoComplete="off" size="mini">
+      <Form form={form} layout="horizontal" autoComplete="off" size="mini">
         <FormItem
           label="Bid Date"
           field="date"
@@ -83,11 +73,7 @@ function BidForm() {
             },
           ]}
         >
-          <DatePicker
-            style={{ width: 200 }}
-            value={bidDate}
-            onChange={handleDateChange}
-          />
+          <DatePicker style={{ width: 200 }} />
         </FormItem>
         <FormItem
           label="Hour Slot"
@@ -104,11 +90,7 @@ function BidForm() {
             },
           ]}
         >
-          <InputNumber
-            placeholder="Enter hour slot"
-            value={bidHour}
-            onChange={(value) => setBidHour(value)}
-          />
+          <InputNumber placeholder="Enter hour slot" />
         </FormItem>
         <FormItem
           label="Bid Type"
@@ -119,7 +101,7 @@ function BidForm() {
             },
           ]}
         >
-          <Radio.Group value={bidType} onChange={(value) => setBidType(value)}>
+          <Radio.Group>
             <Radio value="buy">Buy</Radio>
             <Radio value="sell">Sell</Radio>
           </Radio.Group>
@@ -139,11 +121,7 @@ function BidForm() {
             },
           ]}
         >
-          <InputNumber
-            placeholder="Enter bid price"
-            value={bidPrice}
-            onChange={(value) => setBidPrice(value)}
-          />
+          <InputNumber placeholder="Enter bid price" />
         </FormItem>
         <FormItem
           label="Quantity (MW)"
@@ -160,14 +138,10 @@ function BidForm() {
             },
           ]}
         >
-          <InputNumber
-            placeholder="Enter quantity"
-            value={bidQuantity}
-            onChange={(value) => setBidQuantity(value)}
-          />
+          <InputNumber placeholder="Enter quantity" />
         </FormItem>
         <FormItem wrapperCol={{ offset: 5 }}>
-          <Button type="primary" onClick={handleSubmit}>
+          <Button type="primary" onClick={handleSubmit} loading={loading}>
             Submit Bid
           </Button>
         </FormItem>
