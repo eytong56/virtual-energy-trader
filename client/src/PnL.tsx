@@ -4,26 +4,38 @@ import { useState, useEffect } from "react";
 
 function PnL() {
   const [totalPnL, setTotalPnL] = useState(0);
+  const [dailyPnL, setDailyPnL] = useState(0);
 
   useEffect(() => {
-    const fetchTotalPnL = async () => {
+    const fetchPnL = async () => {
       try {
-        const response = await fetch(
+        let response = await fetch(
           "http://localhost:3000/api/settlements/pnl"
         );
         if (!response.ok) {
           throw new Error(`Failed to retrieve PnL! Status: ${response.status}`);
         }
-        const data = await response.json();
+        let data = await response.json();
         console.log(data);
         setTotalPnL(data.total_pnl);
+
+        const today = new Date().toISOString().split("T")[0];
+        response = await fetch(
+          `http://localhost:3000/api/settlements/pnl?date=${today}`
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to retrieve PnL! Status: ${response.status}`);
+        }
+        data = await response.json();
+        console.log(data);
+        setDailyPnL(data.daily_pnl);
       } catch (error) {
         // setError(error.message);
       } finally {
         // setLoading(false);
       }
     };
-    fetchTotalPnL();
+    fetchPnL();
   }, []);
   return (
     <Card title="Profit & Loss" bordered={false}>
@@ -35,7 +47,7 @@ function PnL() {
       />
       <Statistic
         title="Today's PnL"
-        value={totalPnL}
+        value={dailyPnL}
         suffix={<IconArrowFall style={{ color: "#0fbf60" }} />}
         style={{ marginRight: 60, marginBottom: 20 }}
       />

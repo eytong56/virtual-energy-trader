@@ -1,7 +1,7 @@
 import { Card, Statistic, Button } from "@arco-design/web-react";
 import { useState, useEffect } from "react";
 
-function Time() {
+function Time({reload}) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [lastUpdatedTime, setLastUpdatedTime] = useState(new Date());
   const [loading, setLoading] = useState(false);
@@ -53,6 +53,7 @@ function Time() {
     } finally {
       setLastUpdatedTime(new Date());
       setLoading(false);
+      reload();
     }
   }
 

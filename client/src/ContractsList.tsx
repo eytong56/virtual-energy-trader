@@ -1,33 +1,7 @@
 import { Card, List, Table } from "@arco-design/web-react";
 import { useState, useEffect } from "react";
 
-function ContractList() {
-  const [contracts, setContracts] = useState(null);
-  const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
-
-  // Fetch contracts
-  useEffect(() => {
-    const fetchContracts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("http://localhost:3000/api/contracts");
-        if (!response.ok) {
-          throw new Error(
-            `Failed to retrieve contracts! Status: ${response.status}`
-          );
-        }
-        const data = await response.json();
-        console.log(data);
-        setContracts(data);
-      } catch (error) {
-        // setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchContracts();
-  }, []);
+function ContractList({contracts}) {
 
   const columns: TableColumnProps[] = [
     {
@@ -37,6 +11,10 @@ function ContractList() {
     {
       title: "Hour",
       dataIndex: "hour_slot",
+    },
+    {
+      title: "Type",
+      dataIndex: "type",
     },
     {
       title: "Clearing Price $/MWh",
@@ -52,7 +30,7 @@ function ContractList() {
     },
   ];
 
-  if (loading) {
+  if (contracts === null) {
     return (
       <Card title="Contracts" bordered={false}>
         "Loading..."
@@ -65,6 +43,7 @@ function ContractList() {
       key: contract.id,
       market_date: contract.market_date.split("T")[0],
       hour_slot: contract.hour_slot,
+      type: contract.position_type,
       clearing_price: contract.clearing_price,
       quantity: contract.quantity,
       status: contract.status,

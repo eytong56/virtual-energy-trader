@@ -1,33 +1,8 @@
 import { Card, Table } from "@arco-design/web-react";
 import { useState, useEffect } from "react";
 
-function ContractList() {
-  const [bids, setBids] = useState(null);
-  const [loading, setLoading] = useState(true);
+function ContractList({ bids }) {
   // const [error, setError] = useState(null);
-
-  // Fetch bids
-  useEffect(() => {
-    const fetchBids = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("http://localhost:3000/api/bids");
-        if (!response.ok) {
-          throw new Error(
-            `Failed to retrieve bids! Status: ${response.status}`
-          );
-        }
-        const data = await response.json();
-        console.log(data);
-        setBids(data);
-      } catch (error) {
-        // setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBids();
-  }, []);
 
   const columns: TableColumnProps[] = [
     {
@@ -56,7 +31,7 @@ function ContractList() {
     },
   ];
 
-  if (loading) {
+  if (bids === null) {
     return (
       <Card title="Bids" bordered={false}>
         "Loading..."

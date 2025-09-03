@@ -22,12 +22,20 @@ async function createSettlement(contractData, settlementTime, rtPrice, pnl) {
   }
 }
 
-async function getTotalPnL() {
+async function getTotalPnL(date) {
   try {
-    const result = await pool.query(
-      "SELECT COALESCE(SUM(pnl_amount), 0) AS total_pnl FROM settlements"
-    );
-    return result.rows[0];
+    if (date) {
+      const result = await pool.query(
+        "SELECT COALESCE(SUM(pnl_amount), 0) AS daily_pnl FROM settlements WHERE settlement_time::DATE = $1",
+        [date]
+      );
+      return result.rows[0];
+    } else {
+      const result = await pool.query(
+        "SELECT COALESCE(SUM(pnl_amount), 0) AS total_pnl FROM settlements"
+      );
+      return result.rows[0];
+    }
   } catch (error) {
     console.error("Error calculating total pnl:", error);
     throw error;
@@ -56,7 +64,7 @@ async function checkFullySettled(contractId) {
       "SELECT id FROM settlements WHERE contract_id = $1",
       [contractId]
     );
-    console.log(result.rows)
+    console.log(result.rows);
     return result.rows.length >= 12;
   } catch (error) {
     console.error("Error checking settlement full:", error);
@@ -69,5 +77,5 @@ export default {
   createSettlement,
   getTotalPnL,
   checkSettlementExists,
-  checkFullySettled
+  checkFullySettled,
 };

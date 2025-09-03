@@ -9,7 +9,7 @@ import {
 import { useState } from "react";
 const FormItem = Form.Item;
 
-function BidForm() {
+function BidForm({reload}) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -52,7 +52,7 @@ function BidForm() {
 
       // Reset inputs
       form.resetFields();
-      // onBidAdded(); // Refresh bids
+      reload(); // Refresh bids
     } catch (error) {
       console.log(`Error creating new bid: ${error}`);
       // setError(error);
